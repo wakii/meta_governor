@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 
 dotenv.config();
 
-const provider = ethers.getDefaultProvider(process.env.GOERLI_RPC_URL || "");
+const provider = ethers.getDefaultProvider(process.env.SEPOLIA_RPC_URL || "");
 
 const app: Express = express();
 
