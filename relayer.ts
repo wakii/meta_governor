@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import express, {Express, Request, Response} from "express";
 import { ethers } from "ethers";
 import { readFileSync } from 'fs';
+import bodyParser from "body-parser";
 
 dotenv.config();
 
@@ -17,25 +18,32 @@ async function getInstance(name: string, address: string):Promise<ethers.Contrac
     return new ethers.Contract(address, abi, signer);
 }
 
-async function signTx(account: string, functionName: string) {
+async function signTx(params: any) {    
     const forwarder = await getInstance("MinimalForwarder", process.env.SEPOLIA_FORWARDER_ADDRESS as string)
-    const governor = await getInstance("Governor", process.env.SEPOLIA_GOVERNOR_ADDRESS as string);
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY as string, provider);
-    
-    const data = governor.interface.encodeFunctionData(functionName, [
-        account,
-    ])
-    console.log(signer);
-    return governor.toJSON();
-    // return signer;
+    const {request, signature} = params;
+    try {
+        const valid = await forwarder.verify(request, signature);
+        if (!valid) throw new Error(`Invalid request`);
+        console.log(valid);
+        return await forwarder.execute(request.message, signature);
+    } catch(e) {
+        console.error(e);
+    }
 }
 
-app.get("/vote", async function (req, res) {
-    res.setHeader("Content-Type", "application/json");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Methods", 'POST, GET,OPTIONS, DELETE');
+    next()
+})
+app.use(bodyParser.json())
 
-    const signedTx = await signTx(req.query.account as string, "vote");
-    res.send(signedTx);
+
+app.post("/vote", async function (req,res) {
+    const txReceipt = await signTx(req.body.params);
+    return txReceipt;
 })
 
 app.listen(30001, () => {
