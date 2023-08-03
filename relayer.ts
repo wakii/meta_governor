@@ -18,13 +18,16 @@ async function getInstance(name: string, address: string):Promise<ethers.Contrac
 }
 
 async function signTx(account: string, functionName: string) {
-    const governor = await getInstance("Governor", process.env.GOVERNOR_ADDRESS || "");
-    const signer = new ethers.Wallet(process.env.PRIVATE_KEY || "", provider);
+    const forwarder = await getInstance("MinimalForwarder", process.env.SEPOLIA_FORWARDER_ADDRESS as string)
+    const governor = await getInstance("Governor", process.env.SEPOLIA_GOVERNOR_ADDRESS as string);
+    const signer = new ethers.Wallet(process.env.PRIVATE_KEY as string, provider);
+    
     const data = governor.interface.encodeFunctionData(functionName, [
         account,
     ])
-
-    return signer;
+    console.log(signer);
+    return governor.toJSON();
+    // return signer;
 }
 
 app.get("/vote", async function (req, res) {

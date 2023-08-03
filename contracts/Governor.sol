@@ -140,7 +140,7 @@ contract Governor is MetaOwnable {
         require(block.timestamp > polls[pollId].due, "Governor: Due should be passed");
         require(polls[pollId].status == Status.OPEN, "Governor: Poll should be open");
         
-        // _reveal(pollId);
+        _aggregate(pollId);
         _updatePollStatus(pollId, Status.FINALIZED);   
         
         emit Finalized(pollId, polls[pollId].totalVoted, block.timestamp);
@@ -148,22 +148,22 @@ contract Governor is MetaOwnable {
 
 
     ///////////////////////////////
-    //////      PRIVATE    ///////
+    //////      PRIVATE    ////////
     ///////////////////////////////
 
-    // function _reveal(
-    //     uint256 pollId
-    // ) private validPoll(pollId) {
-    //     require(polls[pollId].due > block.timestamp, "Governor : current timestamp cannot be over the poll's due");
-    //     require(polls[pollId].status != Status.FINALIZED);
-    //     Poll storage poll = polls[pollId];
+    function _aggregate(
+        uint256 pollId
+    ) private validPoll(pollId) {
+        require(polls[pollId].due > block.timestamp, "Governor : current timestamp cannot be over the poll's due");
+        require(polls[pollId].status != Status.FINALIZED);
+        Poll storage poll = polls[pollId];
         
-    //     for (uint256 i = 0; i < poll.votes.length; i++) {
-    //         for (uint256 canId = 0; canId < poll.votes[i].votedCandidates.length; canId++) {
-    //             poll.votesPerCandidates[poll.votes[i].votedCandidates] += poll.votes[i].amount;
-    //         }
-    //     }
-    // }
+        for (uint256 i = 0; i < poll.votes.length; i++) {
+            for (uint256 canId = 0; canId < poll.votes[i].votedCandidates.length; canId++) {
+                poll.votesPerCandidates[canId] += poll.votes[i].amount;
+            }
+        }
+    }
 
 
     function _updatePollStatus(
