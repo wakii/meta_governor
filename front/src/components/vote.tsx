@@ -11,13 +11,10 @@ const Vote = (apiEndpoint:any) => {
             const response = axios.post(
                 apiEndpoint,
                 {
-                  jsonrpc: '2.0',
-                  method: 'eth_sendRawTransaction',
                   params: {
                     request: request,
                     signature: signature
                   },
-                  id: 1,
                 }
               )
 

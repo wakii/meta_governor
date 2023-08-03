@@ -20,10 +20,9 @@ async function getInstance(name: string, address: string):Promise<ethers.Contrac
 
 async function signTx(params: any) {    
     const forwarder = await getInstance("MinimalForwarder", process.env.SEPOLIA_FORWARDER_ADDRESS as string)
-    const signer = new ethers.Wallet(process.env.PRIVATE_KEY as string, provider);
     const {request, signature} = params;
     try {
-        const valid = await forwarder.verify(request, signature);
+        const valid = await forwarder.verify(request.message, signature);
         if (!valid) throw new Error(`Invalid request`);
         console.log(valid);
         return await forwarder.execute(request.message, signature);
